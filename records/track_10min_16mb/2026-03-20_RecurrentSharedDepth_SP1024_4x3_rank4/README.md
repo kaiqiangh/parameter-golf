@@ -51,4 +51,3 @@ This record folder is implemented as a submission-ready code snapshot, but the c
 - `train_seed42.log`
 - `train_seed1337.log`
 - `train_seed7.log`
-
