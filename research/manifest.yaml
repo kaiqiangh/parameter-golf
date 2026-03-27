@@ -1,0 +1,112 @@
+{
+  "version": 1,
+  "name": "recurrent_shared_depth_sp1024_autoresearch",
+  "budget": {
+    "total_usd": 25.0,
+    "buffer_usd": 1.0,
+    "groups": {
+      "short5090": 1.0,
+      "proxy1xh100": 18.0,
+      "final8xh100": 5.0
+    }
+  },
+  "target": {
+    "cwd": "records/track_10min_16mb/2026-03-20_RecurrentSharedDepth_SP1024_4x3_rank4",
+    "script": "train_gpt.py",
+    "command": [
+      "torchrun",
+      "--standalone",
+      "--nproc_per_node={nproc_per_node}",
+      "train_gpt.py"
+    ],
+    "artifact_limit_bytes": 16000000,
+    "base_env": {
+      "DATA_PATH": "/Users/kai/Desktop/parameter-golf/data/datasets/fineweb10B_sp1024/",
+      "TOKENIZER_PATH": "/Users/kai/Desktop/parameter-golf/data/tokenizers/fineweb_1024_bpe.model",
+      "VOCAB_SIZE": "1024",
+      "NUM_LAYERS": "4",
+      "NUM_LOOPS": "3",
+      "LORA_RANK": "4",
+      "QAT": "1",
+      "EVAL_STRIDE": "0",
+      "WARMDOWN_ITERS": "20000",
+      "MATRIX_LR": "0.02",
+      "SCALAR_LR": "0.02",
+      "TIED_EMBED_LR": "0.03",
+      "LORA_LR": "0.01",
+      "GRAD_CLIP_NORM": "1.0",
+      "MAX_WALLCLOCK_SECONDS": "600",
+      "VAL_LOSS_EVERY": "1000",
+      "TRAIN_LOG_EVERY": "200",
+      "SEED": "1337"
+    }
+  },
+  "tiers": {
+    "smoke5090": {
+      "budget_group": "short5090",
+      "hourly_rate_usd": 0.89,
+      "nproc_per_node": 1,
+      "estimated_runtime_s": 60,
+      "env": {
+        "MAX_WALLCLOCK_SECONDS": "60",
+        "VAL_LOSS_EVERY": "0",
+        "TRAIN_LOG_EVERY": "20"
+      }
+    },
+    "short5090": {
+      "budget_group": "short5090",
+      "hourly_rate_usd": 0.89,
+      "nproc_per_node": 1,
+      "estimated_runtime_s": 120,
+      "env": {
+        "MAX_WALLCLOCK_SECONDS": "120",
+        "VAL_LOSS_EVERY": "0",
+        "TRAIN_LOG_EVERY": "25"
+      }
+    },
+    "proxy1xh100": {
+      "budget_group": "proxy1xh100",
+      "hourly_rate_usd": 2.69,
+      "nproc_per_node": 1,
+      "estimated_runtime_s": 720,
+      "env": {
+        "GRAD_ACCUM_STEPS_OVERRIDE": "1",
+        "TRAIN_BATCH_TOKENS": "65536",
+        "MAX_WALLCLOCK_SECONDS": "600",
+        "VAL_LOSS_EVERY": "0",
+        "TRAIN_LOG_EVERY": "100"
+      }
+    },
+    "final8xh100": {
+      "budget_group": "final8xh100",
+      "hourly_rate_usd": 21.52,
+      "nproc_per_node": 8,
+      "estimated_runtime_s": 720,
+      "env": {
+        "MAX_WALLCLOCK_SECONDS": "600",
+        "VAL_LOSS_EVERY": "1000",
+        "TRAIN_LOG_EVERY": "200"
+      }
+    }
+  },
+  "promotion": {
+    "proxy_keep_delta_bpb": 0.001,
+    "short_top_k": 3,
+    "phase_b_top_k": 2
+  },
+  "search_space": {
+    "phase_a": {
+      "structure": ["NUM_LAYERS", "NUM_LOOPS", "LORA_RANK"],
+      "optimization": ["MATRIX_LR", "SCALAR_LR", "TIED_EMBED_LR", "LORA_LR"],
+      "stability": ["WARMDOWN_ITERS", "MUON_MOMENTUM", "MUON_MOMENTUM_WARMUP_START", "MUON_MOMENTUM_WARMUP_STEPS", "GRAD_CLIP_NORM"],
+      "compression_eval": ["QAT", "LOGIT_SOFTCAP", "QK_GAIN_INIT", "EVAL_STRIDE"]
+    },
+    "phase_b": {
+      "activation": ["MLP_ACTIVATION", "LEAKY_RELU_SLOPE"],
+      "rope": ["ROPE_DIMS"],
+      "scope": ["LORA_SCOPE"],
+      "depth": ["DEPTH_SCALE_MODE"],
+      "ema_qat": ["EMA_ENABLED", "EMA_DECAY", "LATE_QAT_THRESHOLD"]
+    }
+  }
+}
